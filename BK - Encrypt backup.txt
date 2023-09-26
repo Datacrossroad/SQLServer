@@ -1,0 +1,35 @@
+--iF THE MASTER KEY DOES NOT EXIST
+CREATE MASTER KEY ENCRYPTION BY PASSWORD = '&C4_T/GGEg%Tf.6GJaTS8eWf)s';
+GO
+
+--Verify the presence of the new key
+SELECT * FROM sys.symmetric_keys;
+GO
+
+/*
+--Backup Master key example
+USE MASTER;  
+OPEN MASTER KEY DECRYPTION BY PASSWORD = '&C4_T/GGEg%Tf.6GJaTS8eWf)s';  
+BACKUP MASTER KEY TO FILE = 'c:\temp\master_key'   
+    ENCRYPTION BY PASSWORD = '7G@q#uT$3t>GvE}gmx,PJ(C.tM';  
+GO   
+*/
+
+CREATE CERTIFICATE Appli1_Pro_BackupCert20230331
+WITH SUBJECT = 'Appli1_Pro_BackupCert';
+GO
+
+BACKUP CERTIFICATE Appli1_Pro_BackupCert20230331 TO FILE = 'D:\SQLServer\SQLBackup\Appli1_Pro_BackupCert20230331.cer' 
+WITH PRIVATE KEY (FILE = 'D:\SQLBackup\Appli1_Pro_BackupCert20230331.pvk', ENCRYPTION BY PASSWORD='^:9=EAWvhK$?PVA3<$29mU*;z')
+go
+
+
+BACKUP DATABASE [MyDB1] 
+TO  DISK = N'D:\SQLBackup\MyDB1_backupencrypted_20230331_1150.bak' 
+WITH  COPY_ONLY, FORMAT, INIT,  NAME = N'MyDB1-Full Database Backup', 
+SKIP, NOREWIND, NOUNLOAD, COMPRESSION, ENCRYPTION(ALGORITHM = AES_128, 
+SERVER CERTIFICATE = [Appli1_BackupCert20230331]), STATS = 10
+GO
+
+
+--drop certificate Appli1_Pro_BackupCert20230331

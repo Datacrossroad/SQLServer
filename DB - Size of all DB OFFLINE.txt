@@ -1,0 +1,6 @@
+SELECT DB_NAME(db.database_id) as [DB Name], CONVERT(DECIMAL(6,3),SUM((CONVERT(DECIMAL(20,5),mf.size)*8)/1048576)) as [DB Size in GB]
+FROM sys.databases db
+	LEFT JOIN sys.master_files mf ON db.database_id = mf.database_id
+WHERE db.state_desc = 'OFFLINE'
+GROUP BY DB_NAME(db.database_id)
+ORDER BY [DB Name]

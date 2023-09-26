@@ -1,0 +1,4 @@
+select 'use ['+sd.name +']; dbcc shrinkfile('''+ sf.name +''')' 
+from sysaltfiles sf 
+     inner join  sysdatabases sd on sf.dbid=sd.dbid
+where groupid=0 and sd.name not in ('master','model','msdb')

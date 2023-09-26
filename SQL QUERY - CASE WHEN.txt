@@ -1,0 +1,9 @@
+SELECT @@SERVERNAME as 'Instance Name', @TimeZone as 'TimeZone',
+CASE
+    WHEN @@SERVERNAME like '%V25' THEN 'C15'
+    WHEN @@SERVERNAME like '%V35' THEN 'C15'
+	WHEN @@SERVERNAME like '%V45' THEN 'C15'
+	WHEN @@SERVERNAME like '%V55' THEN 'C15'
+	WHEN @@SERVERNAME like '%V65' THEN 'C15'
+	ELSE 'C15'
+END AS 'Cluster Node'

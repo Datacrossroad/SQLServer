@@ -1,0 +1,17 @@
+SELECT db.name as 'DB_NAME'
+FROM sys.databases db
+WHERE db.state = 6 -- OFFLINE
+ORDER BY db.name
+
+
+SELECT
+'DB_NAME' = db.name,
+'FILE_NAME' = mf.name,
+'FILE_TYPE' = mf.type_desc,
+'FILE_PATH' = mf.physical_name
+FROM
+sys.databases db
+INNER JOIN sys.master_files mf
+ON db.database_id = mf.database_id
+WHERE
+db.state = 6 -- OFFLINE

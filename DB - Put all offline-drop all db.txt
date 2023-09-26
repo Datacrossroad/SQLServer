@@ -1,0 +1,14 @@
+SELECT 'ALTER DATABASE ' + [name] + ' SET offline'
+from sys.databases
+Where name not in ('master','tempdb','model','msdb')
+order by name
+
+
+SELECT 'ALTER DATABASE ['+name+'] SET OFFLINE WITH NO_WAIT'+CHAR(10)+' GO' 
+FROM MASTER.sys.databases
+WHERE name NOT IN ('master','tempdb','model','msdb','distribution')
+
+
+SELECT 'DROP DATABASE ['+name+']'+CHAR(10)+' GO' FROM 
+MASTER.sys.databases
+WHERE name NOT IN ('master','tempdb','model','msdb','distribution')

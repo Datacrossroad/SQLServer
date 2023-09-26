@@ -1,0 +1,6 @@
+SELECT 'EXEC msdb.dbo.sp_delete_database_backuphistory @database_name =['+name+']'+CHAR(10)+'GO'+CHAR(10)+
+		'USE [master]'+CHAR(10)+'GO'+CHAR(10)+
+		'ALTER DATABASE ['+name+'] SET SINGLE_USER WITH ROLLBACK IMMEDIATE'+CHAR(10)+'GO'+CHAR(10)+
+	   'DROP DATABASE ['+name+']'+CHAR(10)+'GO'+CHAR(10)
+FROM MASTER.sys.databases
+WHERE name NOT IN ('DBA','master','tempdb','model','msdb','distribution')

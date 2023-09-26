@@ -1,0 +1,14 @@
+select name as 'Database name', compatibility_level as 'Compatibility level' , 
+[SQL Server version] =
+CASE compatibility_level
+WHEN 100 THEN 'SQL Server 2008R2'
+WHEN 110 THEN 'SQL Server 2012'
+WHEN 120 THEN 'SQL Server 2014'
+WHEN 130 THEN 'SQL Server 2016'
+WHEN 140 THEN 'SQL Server 2017'
+WHEN 150 THEN 'SQL Server 2019'
+WHEN 160 THEN 'SQL Server 2022'
+ELSE 'new but not known yet - '+CONVERT(varchar(50),compatibility_level)
+END
+from sys.databases
+where name not in ('master','msdb','tempdb','model')

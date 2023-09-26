@@ -1,0 +1,10 @@
+/* Collation used by all the databases on a SQL Server instance */
+USE Master
+GO
+SELECT @@SERVERNAME as 'Server Name',
+ NAME, 
+ COLLATION_NAME
+FROM sys.Databases
+where name not in ('master','tempdb','model','msdb','dba')
+ ORDER BY DATABASE_ID ASC
+GO

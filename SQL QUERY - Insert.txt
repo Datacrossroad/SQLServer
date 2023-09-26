@@ -1,0 +1,4 @@
+  BEGIN TRAN
+  INSERT INTO cap.Dim_Password (UserName,[Password],PasswordTypeID)
+  Values ('tu_esgrmpbi_UAT','Password*1802','2')
+  COMMIT

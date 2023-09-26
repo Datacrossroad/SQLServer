@@ -1,0 +1,5 @@
+SELECT @@SERVERNAME, count (cpu_id) as 'CPU on server'
+FROM sys.dm_os_schedulers
+WHERE scheduler_id < 1048576
+AND is_online = 1
+GO

@@ -1,0 +1,4 @@
+--If you want to have the history of restore DB
+select * 
+from restorehistory 
+order by restore_date desc

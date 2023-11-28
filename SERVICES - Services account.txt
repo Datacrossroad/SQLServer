@@ -1,0 +1,5 @@
+select @@SERVERNAME, servicename, service_account
+from sys.dm_server_services
+Where servicename not like 'SQL Server Agent%'
+	   AND servicename not like 'SQL Full-text Filter Daemon Launcher%'
+ORDER BY @@SERVERNAME

@@ -1,0 +1,68 @@
+--Cette query permet de voir le status de l'encryption.
+SELECT
+    db.name,
+    db.is_encrypted,
+    dm.encryption_state,
+    dm.percent_complete,
+    dm.key_algorithm,
+    dm.key_length
+FROM
+    sys.databases db
+    LEFT OUTER JOIN sys.dm_database_encryption_keys dm
+        ON db.database_id = dm.database_id
+WHERE db.name not in ('master','model','tempdb','msdb')
+	--And db.name like '%mydb%';
+GO
+
+--Ici on enlève l'encryption, mais attention si on fait un backup et restore sans le certificat, ça ne fonctionnera pas.
+ALTER DATABASE MyDB
+SET ENCRYPTION OFF;  
+GO
+
+/* Wait for decryption operation to complete, look for a value of 1 in the query below. */  
+-- Check if the encryption is finished with this query
+SELECT
+    db.name,
+    db.is_encrypted,
+    dm.encryption_state,
+    dm.percent_complete,
+    dm.key_algorithm,
+    dm.key_length
+FROM
+    sys.databases db
+    LEFT OUTER JOIN sys.dm_database_encryption_keys dm
+        ON db.database_id = dm.database_id
+WHERE db.name not in ('master','model','tempdb','msdb')
+	--And db.name like '%MyDB%';
+GO
+
+-- Ici si on exécute ceci, on enlève "tout" et on verra des NULL dans toutes les colonnes. Là on peut alors donner un backup et restorer où on veut sans certificat
+USE MyDB;  
+GO  
+DROP DATABASE ENCRYPTION KEY;  
+GO
+
+------------------------------------------------------
+--Backup des DB
+
+BACKUP DATABASE [MyDB] 
+TO  DISK = N'N:\SQLServer\SQLBackup\MyDB_20210216_1235_WithoutEncryption.bak' 
+WITH  COPY_ONLY, NOFORMAT, NOINIT,  NAME = N'MyDB-Full Database Backup', SKIP, NOREWIND, NOUNLOAD,  STATS = 1
+GO
+
+------------------------------------------------------
+-- Create certificat
+
+USE MyDB;  
+GO  
+CREATE DATABASE ENCRYPTION KEY  
+WITH ALGORITHM = AES_256  
+ENCRYPTION BY SERVER CERTIFICATE TDE_Cert_MyDB;  --Le certificat ici on le retrouvera dans Master\security\Certificates
+GO
+
+-----------------------------
+--Add encryption
+
+ALTER DATABASE MyDB 
+SET ENCRYPTION ON;  
+GO

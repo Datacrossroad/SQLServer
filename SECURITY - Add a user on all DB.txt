@@ -1,0 +1,153 @@
+--Change login name in line 6 and 49
+USE [master]
+GO
+
+/****** Object:  Login [MyDomain\MyTU]    Script Date: 15/09/2022 11:25:59 ******/
+CREATE LOGIN [MyDomain\MyTU] FROM WINDOWS WITH DEFAULT_DATABASE=[master], DEFAULT_LANGUAGE=[us_english]
+GO
+
+
+--===================================================================================
+-- ------------------------------
+-- Description
+-- ------------------------------
+--
+-- This script grants db_datareader to a given user for ALL databases in a given instance.
+--
+-- **NOTE**:  This script should be run for all SQL Server 2005 and higher releases only.
+--            
+--
+-- ------------------------------
+-- before running this script
+-- ------------------------------
+--  you MUST CREATE AN SQL LOGIN before (done in the begining of this script)
+--  This login doesn't need to be added to any database or given
+--  any privilege.  The script will take care of that.
+--
+--
+-- ------------------------------
+-- User/Password to use
+-- ------------------------------
+-- User: MyDomain\MyTU (or any other name, if changed)
+-- Pass: user defined
+-- Role: db_datareader
+
+--===================================================================================
+
+-----------------------------------------------------------------------
+-- Change to the master database
+-----------------------------------------------------------------------
+USE master
+
+-----------------------------------------------------------------------
+-- *** If a different login name is desired, define it here. ***
+-- *** Domain name is accepted here as well.  
+-- *** Example: set @MyUser = 'Domain_name\Domain_user' 
+-----------------------------------------------------------------------
+
+DECLARE @MyUser AS nvarchar(50)
+set @MyUser = N'MyDomain\MyTU'
+
+-----------------------------------------------------------------------
+-- Escape single quote in name.  
+-- The script allow user name with single quote and space.
+-- User with '[' or ']' is not allow.
+-----------------------------------------------------------------------
+DECLARE @MyUser_escape AS nvarchar(50)
+set @MyUser_escape = replace(@MyUser,'''','''''')
+
+DECLARE @databaseName AS nvarchar(128)
+DECLARE @databaseNameUSE AS nvarchar(128)
+DECLARE @executeString AS nvarchar(max)
+
+--------------------------------------------------------------
+--  Adding user to all the databases
+--  and grant db_datareader role, only if login exists.
+-------------------------------------------------------------
+PRINT '>>>==================================================================>>>'
+PRINT '>>> Grant db_datareader role to: ''' + @MyUser + ''''
+PRINT '>>> on all databases.'
+PRINT '>>>==================================================================>>>'
+USE master
+
+/* Check if @MyUser is a login exist, if not do nothing.*/
+IF NOT EXISTS (select name from sys.server_principals where name = @MyUser)
+BEGIN
+  PRINT ''
+  PRINT '************************************************************************'
+  PRINT '*** ERROR: Could not find the login: ''' + @MyUser + ''''
+  PRINT '***        Please add the login and re-run this script.'
+  PRINT '************************************************************************'
+  PRINT ''
+END
+ELSE
+BEGIN
+
+    DECLARE DatabaseCursor CURSOR FOR SELECT name from sys.databases where 
+					user_access <>  1			--not single user
+					and state = 0                  	        --online
+					and is_read_only = 0			--not read only
+					
+    OPEN DatabaseCursor
+    FETCH DatabaseCursor INTO @databaseName
+    WHILE @@Fetch_Status = 0
+    BEGIN
+
+      set @databaseNameUSE =  @databaseName 					              /* This is only for syntax like Use db_name as bracket would handle space and ' */
+      set @databaseName = quotename(replace(@databaseName, '''', ''''''))                     /* replace ' with '' to escape the single quote that may exists in database name */
+      set @executeString = ''
+      set @executeString = 'use ' + quotename(@databaseNameUSE) + ' ' +
+             '/*Check if the login already has access to this database */ ' +
+              'IF EXISTS (select * from sys.database_principals where name = ''' + @MyUser_escape + ''' and type in (''S'',''U'',''G'')) ' +
+             'BEGIN ' +
+              '/*Check if login already have db_datareader role*/ ' +
+             'IF NOT EXISTS (SELECT grantee.name FROM sys.database_role_members ro, sys.database_principals db_role, ' + 
+              'sys.database_principals grantee WHERE ro.role_principal_id = db_role.principal_id and ro.member_principal_id = grantee.principal_id ' +
+              'and db_role.name = ''db_datareader'' and grantee.name = ''' + @MyUser_escape + ''') ' +
+              'BEGIN ' +
+              'PRINT ''==> Granting db_datareader role to ' + @MyUser_escape + ' on database ' + @databaseName + ''' ' +
+              'execute sp_addrolemember ''db_datareader''' + ', [' + @MyUser + '] ' +
+              'PRINT '' ''' +
+              'END ' +
+             'END ' +
+             'IF NOT EXISTS (select * from sys.database_principals where name = ''' + @MyUser_escape + ''' and type in (''S'',''U'',''G'')) ' +
+             'BEGIN ' +
+             'PRINT ''==> Adding user [' + @MyUser_escape + '] to database: ' + @databaseName + ''' ' +
+             /* 'execute sp_adduser [' + @MyUser + '] ' +    This syntax no longer work for adding security group login to database  */
+             'create user [' + @MyUser + '] ' + ' for login [' + @MyUser + '] ' + 
+             'PRINT ''==> Granting db_datareader role to ' + @MyUser_escape + ' on database '  + @databaseName + ''' ' +
+             'execute sp_addrolemember ''db_datareader''' + ', [' + @MyUser + '] ' +
+             'PRINT '' ''' +
+             'END '
+    --print (@executeString)
+    execute (@executeString)
+    FETCH DatabaseCursor INTO @databaseName
+    END
+    CLOSE DatabaseCursor
+    DEALLOCATE DatabaseCursor
+
+
+    -- Grant system privileges to the @MyUser.  This is a requirement
+    -- or else some system catalogs will filter our result.
+    -- This will show up in sys.server_permissions view.
+    PRINT '==> Granting catalog privileges to: ''' + @MyUser + ''''
+    execute ('grant VIEW ANY DATABASE to [' + @MyUser + ']' )
+    execute ('grant VIEW ANY DEFINITION to [' + @MyUser + ']' )
+
+  PRINT '<<<==================================================================<<<'
+  PRINT '<<< Finished Granting db_datareader role to: ''' + @MyUser + ''''
+  PRINT '<<< on all databases.'
+  PRINT '<<<==================================================================<<<'
+  PRINT ''
+  
+END
+GO
+  
+/* Clean up to revoke what was granted if user want to rollback grant.
+  
+USE [master]
+GO
+  
+EXEC sp_MSforeachdb 'USE [?] print ''droping user g_class for '' + db_name()   DROP user [g_class]'
+
+*/

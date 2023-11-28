@@ -1,0 +1,47 @@
+--Une master Key peut avoir plusieurs mot de passe
+USE master;
+GO
+CREATE MASTER KEY ENCRYPTION
+       BY PASSWORD='fdjfggfsdfghjhfggfhfx';
+GO
+
+--Step 2: Create a Certificate to support TDE
+USE master;
+GO 
+CREATE CERTIFICATE TDE_pro_Certificate
+       WITH SUBJECT='Certificate for TDE for MyProject';
+GO
+
+--Step 3: Create Database Encryption Key
+USE MyDB
+GO
+CREATE DATABASE ENCRYPTION KEY
+WITH ALGORITHM = AES_256
+ENCRYPTION BY SERVER CERTIFICATE TDE_pro_Certificate;  
+
+--Step 4: Enable TDE on Database
+ALTER DATABASE Alteryx_pro SET ENCRYPTION ON;
+GO
+
+--Step5: Check if the encryption is finish
+SELECT
+    db.name,
+    db.is_encrypted,
+    dm.encryption_state,
+    dm.percent_complete,
+    dm.key_algorithm,
+    dm.key_length
+FROM
+    sys.databases db
+    LEFT OUTER JOIN sys.dm_database_encryption_keys dm
+        ON db.database_id = dm.database_id
+
+--Step 6: Backup the Certificate
+This step is not required to encrypt a database using TDE.  But to make sure you can recover your encrypted data from a database backup, should your instance database become corrupted, or you want to move an encrypted database to another server, you should backup the certificate.  To accomplish that backup run the following code:
+USE master;
+GO
+BACKUP CERTIFICATE TDE_pro_Certificate
+TO FILE = 'C:\temp\TDE_pro_Certificate.cer'
+WITH PRIVATE KEY (file='C:\temp\TDE_PRO_CertKey.pvk',
+ENCRYPTION BY PASSWORD='9g+=kjhhgfugiholjmlkpoj');
+

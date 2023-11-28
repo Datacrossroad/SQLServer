@@ -1,0 +1,4 @@
+select name, type_desc, definition
+from sys.objects     o
+join sys.sql_modules m on m.object_id = o.object_id
+where o.type = 'V'

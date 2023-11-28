@@ -1,0 +1,52 @@
+--SQL logins
+SELECT 
+	SL.name AS LoginName 
+	,LOGINPROPERTY (SL.name, 'PasswordLastSetTime') AS PasswordLastSetTime 
+	,LOGINPROPERTY (SL.name, 'DaysUntilExpiration') AS DaysUntilExpiration 
+	,DATEADD(dd, CONVERT(int, LOGINPROPERTY (SL.name, 'DaysUntilExpiration')) 
+				, CONVERT(datetime, LOGINPROPERTY (SL.name, 'PasswordLastSetTime'))) AS PasswordExpiration 
+	,SL.is_policy_checked AS IsPolicyChecked 
+	,LOGINPROPERTY (SL.name, 'IsExpired') AS IsExpired 
+	,LOGINPROPERTY (SL.name, 'IsMustChange') AS IsMustChange 
+	,LOGINPROPERTY (SL.name, 'IsLocked') AS IsLocked 
+	,LOGINPROPERTY (SL.name, 'LockoutTime') AS LockoutTime 
+	,LOGINPROPERTY (SL.name, 'BadPasswordCount') AS BadPasswordCount 
+	,LOGINPROPERTY (SL.name, 'BadPasswordTime') AS BadPasswordTime 
+	,LOGINPROPERTY (SL.name, 'HistoryLength') AS HistoryLength 
+FROM sys.sql_logins AS SL 
+WHERE SL.name = 'Nxxxx'--is_expiration_checked = 1
+ORDER BY LOGINPROPERTY (SL.name, 'PasswordLastSetTime') DESC
+
+select
+    @@SERVERNAME as servername,
+    name,
+    IS_SRVROLEMEMBER('sysadmin', name) as SYSADMIN,
+    type_desc,
+    create_date,
+    is_policy_checked,
+    is_disabled,
+    password_hash,
+    is_policy_checked,
+    is_expiration_checked,
+    modify_date,
+    PWDCOMPARE(name, password_hash) as UsernameAsPassword
+FROM sys.sql_logins
+
+--Ici j'ai juste mis sys.syslogins pour chercher aussi pour les comptes AD
+SELECT 
+	SL.name AS LoginName 
+	,LOGINPROPERTY (SL.name, 'PasswordLastSetTime') AS PasswordLastSetTime 
+	,LOGINPROPERTY (SL.name, 'DaysUntilExpiration') AS DaysUntilExpiration 
+	,DATEADD(dd, CONVERT(int, LOGINPROPERTY (SL.name, 'DaysUntilExpiration')) 
+				, CONVERT(datetime, LOGINPROPERTY (SL.name, 'PasswordLastSetTime'))) AS PasswordExpiration 
+	--,SL.is_policy_checked AS IsPolicyChecked 
+	,LOGINPROPERTY (SL.name, 'IsExpired') AS IsExpired 
+	,LOGINPROPERTY (SL.name, 'IsMustChange') AS IsMustChange 
+	,LOGINPROPERTY (SL.name, 'IsLocked') AS IsLocked 
+	,LOGINPROPERTY (SL.name, 'LockoutTime') AS LockoutTime 
+	,LOGINPROPERTY (SL.name, 'BadPasswordCount') AS BadPasswordCount 
+	,LOGINPROPERTY (SL.name, 'BadPasswordTime') AS BadPasswordTime 
+	,LOGINPROPERTY (SL.name, 'HistoryLength') AS HistoryLength 
+FROM sys.syslogins AS SL 
+WHERE SL.name IN ('MyDomain\sql_tu')--is_expiration_checked = 1
+ORDER BY LOGINPROPERTY (SL.name, 'PasswordLastSetTime') DESC

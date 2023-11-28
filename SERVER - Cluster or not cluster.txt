@@ -1,0 +1,12 @@
+SELECT SERVERPROPERTY('IsClustered')
+
+SELECT * FROM sys.dm_os_cluster_nodes
+
+declare @IsClustered as sql_variant  
+set @IsClustered = (select SERVERPROPERTY('IsClustered'))  
+select @IsClustered as IsClustered ,  
+case @IsClustered  
+when 0 then 'Not Clustered'  
+when 1 then 'Clustered'  
+else 'Invalid Input'  
+end as 'IsClustered Status'

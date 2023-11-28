@@ -1,0 +1,35 @@
+SELECT c.name, tbl.name as table_name, c.is_masked, c.masking_function  
+FROM sys.masked_columns AS c  
+JOIN sys.tables AS tbl   
+    ON c.[object_id] = tbl.[object_id]  
+WHERE is_masked = 1;  
+
+--Dropping a Dynamic Data Mask
+ALTER TABLE Data.Membership   
+ALTER COLUMN LastName DROP MASKED;
+
+--Removing the UNMASK permission (on login, not on user)
+REVOKE UNMASK TO MaskingTestUser
+REVOKE UNMASK TO [MyDomain\A23456]
+
+--Permet aux users de voir les données masquées. A savoir que les db_owner et sysadmin n'en ont pas besoin
+GRANT UNMASK TO MaskingTestUser;
+
+--Pour voir qui peut voir les données masquées, car par défault, c'est pas le cas
+ select  princ.name
+,       princ.type_desc
+,       perm.permission_name
+,       perm.state_desc
+,       perm.class_desc
+,       object_name(perm.major_id)
+from    sys.database_principals princ
+left join
+        sys.database_permissions perm
+on      perm.grantee_principal_id = princ.principal_id
+WHERE princ.name not in ('public')
+	  and princ.name like '%B57678%'
+
+--Il faut alors voir la seconde ligne
+name			type_desc		permission_name	state_desc	class_desc	(No column name)
+MyDomain\B57678	WINDOWS_USER	CONNECT			GRANT		DATABASE	NULL
+MyDomain\B57678	WINDOWS_USER	UNMASK			GRANT		DATABASE	NULL

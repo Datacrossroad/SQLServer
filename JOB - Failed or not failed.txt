@@ -1,0 +1,37 @@
+select j.name
+    ,js.step_name
+    ,jh.sql_severity
+    ,jh.message
+    ,jh.run_date
+    ,jh.run_time
+	,jh.run_status
+FROM msdb.dbo.sysjobs AS j
+INNER JOIN msdb.dbo.sysjobsteps AS js
+   ON js.job_id = j.job_id
+INNER JOIN msdb.dbo.sysjobhistory AS jh
+   ON jh.job_id = j.job_id AND jh.step_id = js.step_id
+WHERE js.step_name = 'Backup All DBs'
+		AND jh.run_status = 0
+		AND jh.run_date > 20220901
+ORDER BY jh.run_date DESC
+
+
+
+select j.name
+    ,js.step_name
+    ,jh.sql_severity
+    ,jh.message
+    ,jh.run_date
+    ,jh.run_time
+	,jh.run_status
+FROM msdb.dbo.sysjobs AS j
+INNER JOIN msdb.dbo.sysjobsteps AS js
+   ON js.job_id = j.job_id
+INNER JOIN msdb.dbo.sysjobhistory AS jh
+   ON jh.job_id = j.job_id AND jh.step_id = js.step_id
+WHERE J.name = 'DatabaseMaint ALL DBs' --J'ai parfois ce message d'erreur : The multi-part identifier "J.name" could not be bound.
+							-- Alors je l'enlève et je ne filtre que sur la step
+		AND js.step_name = 'Backup All DBs'
+		AND jh.run_status = 0
+		AND jh.run_date > 20220901
+ORDER BY jh.run_date DESC

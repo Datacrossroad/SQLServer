@@ -1,0 +1,4 @@
+SELECT name, is_disabled 
+FROM sys.server_principals 
+where name='sa' 
+and is_disabled = 0

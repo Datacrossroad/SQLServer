@@ -1,0 +1,7 @@
+select p.[type]
+      ,p.[name]
+      ,c.[definition]
+  from sys.objects p
+  join sys.sql_modules c
+    on p.object_id = c.object_id
+ where p.[type] = 'P'

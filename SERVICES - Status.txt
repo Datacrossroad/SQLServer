@@ -1,0 +1,2 @@
+SELECT [servicename], [status_desc], [startup_type]
+FROM   sys.dm_server_services

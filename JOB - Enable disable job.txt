@@ -1,0 +1,6 @@
+USE msdb ;  
+GO  
+EXEC dbo.sp_update_job  
+    @job_name = N'DatabaseMaint ALL DBs',   
+    @enabled = 1 ;  
+GO

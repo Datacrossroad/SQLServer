@@ -1,0 +1,21 @@
+USE MASTER
+GO 
+SELECT name as SQLServerLogIn,SID as SQLServerSID FROM sys.syslogins
+WHERE [name] = 'mons'
+GO
+
+USE MyDB_uat
+GO 
+SELECT name DataBaseID,SID as DatabaseSID FROM sysusers
+WHERE [name] = 'mons'
+GO
+
+
+sp_change_users_login @Action='Report'
+GO
+
+
+sp_change_users_login @Action='update_one', 
+@UserNamePattern='mons', --Mettre le nom du user, donc surement le même que le login
+@LoginName='mons' --login name
+GO

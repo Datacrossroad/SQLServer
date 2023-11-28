@@ -1,0 +1,6 @@
+SELECT  DB_NAME(database_id) as 'Database name',
+                               COUNT (*) * 8 / 1024 AS MBUsed
+FROM   sys.dm_os_buffer_descriptors
+WHERE DB_NAME(database_id) NOT IN ('master','tempdb','msdb','model')
+GROUP BY          database_id
+ORDER BY           COUNT (*) * 8 / 1024 DESC

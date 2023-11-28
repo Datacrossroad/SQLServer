@@ -1,0 +1,3 @@
+select * 
+from sys.dm_exec_connections
+order by connect_time desc

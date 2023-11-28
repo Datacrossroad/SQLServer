@@ -1,0 +1,10 @@
+-- Pour savoir où elle se trouve
+SELECT traceid, value FROM [fn_trace_getinfo](NULL)
+WHERE [property] = 2;
+
+--Ici, j'avais du 209 au 213, mais en lisant le 1er, il lit les autres aussi
+SELECT * 
+FROM [fn_trace_gettable]('F:\SQLServer\SQLData\MSSQL13.MSSQLSERVER\MSSQL\Log\Log_209.trc', DEFAULT)
+WHERE ApplicationName not like ('%SQLAgent%')
+	AND DatabaseName like ('%MyDB%')
+ORDER BY StartTime;

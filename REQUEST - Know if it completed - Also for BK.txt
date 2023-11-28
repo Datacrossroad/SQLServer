@@ -1,0 +1,9 @@
+select session_id,Start_time, [status], percent_complete,estimated_completion_time
+from sys.dm_exec_requests
+where session_id IN (63)
+
+
+select start_time as 'Début', status, percent_complete, command, 
+total_elapsed_time/1000/60 as 'Temps passé', estimated_completion_time/1000/60 as 'Fin estimée', wait_type, last_wait_type 
+from sys.dm_exec_requests 
+where command like '%restore%'
